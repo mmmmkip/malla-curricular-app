@@ -4,9 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Malla Ingeniería Civil en Obras Civiles</title>
+
+<!-- FIREBASE SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <style>
   :root {
-    /* Nueva Paleta Titanium Slate Professional */
     --bg-base: #090d16;
     --panel-bg: #111827;
     --panel-card: #1f2937;
@@ -16,7 +20,6 @@
     --text-secondary: #9ca3af;
     --text-muted: #6b7280;
     
-    /* Acentos cromáticos moderados */
     --accent-teal: #0d9488;
     --accent-teal-glow: rgba(13, 148, 136, 0.15);
     
@@ -45,7 +48,6 @@
     min-height: 100vh;
   }
 
-  /* HEADER EJECUTIVO */
   header {
     background: var(--panel-bg);
     border-bottom: 1px solid var(--border-color);
@@ -84,7 +86,15 @@
     font-weight: 600;
   }
 
-  /* NAVBAR BOTTOM GLASSMORPHISM */
+  .sync-indicator {
+    font-size: 0.7rem;
+    color: var(--status-passed);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
   nav.navbar {
     position: fixed;
     bottom: 16px;
@@ -128,7 +138,6 @@
     border: 1px solid var(--border-subtle);
   }
 
-  /* PESTAÑAS */
   .tab-content { display: none; padding: 0 16px; max-width: 1600px; margin: 0 auto; }
   .tab-content.active { display: block; animation: fadeIn 0.2s ease-in-out; }
 
@@ -137,7 +146,6 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* DASHBOARD KPI STATS */
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -194,7 +202,6 @@
     border-radius: 10px;
   }
 
-  /* GRID MALLA */
   .grid-container {
     display: grid;
     grid-template-columns: repeat(10, minmax(180px, 1fr));
@@ -227,7 +234,6 @@
     align-items: center;
   }
 
-  /* TARJETAS DE ASIGNATURA COMPACTAS */
   .course-card {
     background: var(--panel-bg);
     border: 1px solid var(--border-color);
@@ -275,7 +281,6 @@
     color: var(--text-muted);
   }
 
-  /* ESTADOS */
   .status-tag.pending { background: var(--status-pending-bg); color: var(--status-pending); }
   .status-tag.in_progress { background: var(--status-progress-bg); color: var(--status-progress); }
   .status-tag.passed { background: var(--status-passed-bg); color: var(--status-passed); }
@@ -289,7 +294,6 @@
   .course-card.unlocks-highlight { border-color: #a855f7 !important; background: rgba(168, 85, 247, 0.1) !important; }
   .course-card.active-selected { border-color: #38bdf8 !important; }
 
-  /* TOOLTIP */
   .custom-tooltip {
     position: absolute;
     bottom: 105%;
@@ -312,7 +316,6 @@
 
   .course-card:hover .custom-tooltip { display: block; }
 
-  /* REDISEÑO PROFESIONAL DEL HORARIO */
   .horario-toolbar {
     background: var(--panel-bg);
     border: 1px solid var(--border-color);
@@ -346,10 +349,7 @@
     font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
-    transition: opacity 0.2s;
   }
-
-  .btn-submit:hover { opacity: 0.9; }
 
   .calendar-board {
     display: grid;
@@ -414,9 +414,6 @@
     cursor: pointer;
   }
 
-  .btn-remove-block:hover { color: var(--status-failed); }
-
-  /* EVALUACIONES LISTA */
   .eval-card-pro {
     background: var(--panel-bg);
     border: 1px solid var(--border-color);
@@ -438,10 +435,10 @@
       Malla Curricular
       <span class="career-badge">Ingeniería Civil en Obras Civiles</span>
     </div>
+    <div class="sync-indicator">🟢 Sincronizado en la Nube</div>
   </div>
 </header>
 
-<!-- NAVEGACIÓN FLOTANTE -->
 <nav class="navbar">
   <button class="nav-btn active" onclick="switchTab('mallaTab', this)">
     <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z"/></svg>
@@ -457,49 +454,30 @@
   </button>
 </nav>
 
-<!-- TAB 1: MALLA -->
 <div id="mallaTab" class="tab-content active">
   <div class="stats-grid">
     <div class="kpi-card">
-      <div class="kpi-header">
-        <span class="kpi-title">Créditos Ap.</span>
-        <svg class="kpi-icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-      </div>
+      <div class="kpi-header"><span class="kpi-title">Créditos Ap.</span></div>
       <div class="kpi-value" id="passedCreditsCount">0 / 319</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-header">
-        <span class="kpi-title">Aprobadas</span>
-        <svg class="kpi-icon" viewBox="0 0 24 24" style="fill: var(--status-passed)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-      </div>
+      <div class="kpi-header"><span class="kpi-title">Aprobadas</span></div>
       <div class="kpi-value" style="color: var(--status-passed)" id="passedCount">0</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-header">
-        <span class="kpi-title">Cursando</span>
-        <svg class="kpi-icon" viewBox="0 0 24 24" style="fill: var(--status-progress)"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
-      </div>
+      <div class="kpi-header"><span class="kpi-title">Cursando</span></div>
       <div class="kpi-value" style="color: var(--status-progress)" id="inProgressCount">0</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-header">
-        <span class="kpi-title">Reprobadas</span>
-        <svg class="kpi-icon" viewBox="0 0 24 24" style="fill: var(--status-failed)"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </div>
+      <div class="kpi-header"><span class="kpi-title">Reprobadas</span></div>
       <div class="kpi-value" style="color: var(--status-failed)" id="failedCount">0</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-header">
-        <span class="kpi-title">Pendientes</span>
-        <svg class="kpi-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-      </div>
+      <div class="kpi-header"><span class="kpi-title">Pendientes</span></div>
       <div class="kpi-value" style="color: var(--text-muted)" id="pendingCount">0</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-header">
-        <span class="kpi-title">Avance</span>
-        <svg class="kpi-icon" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 15.66z"/></svg>
-      </div>
+      <div class="kpi-header"><span class="kpi-title">Avance</span></div>
       <div class="kpi-value" id="progressPercent">0%</div>
     </div>
   </div>
@@ -511,7 +489,6 @@
   <div class="grid-container" id="mallaGrid"></div>
 </div>
 
-<!-- TAB 2: HORARIO PROFESIONAL -->
 <div id="horarioTab" class="tab-content">
   <div class="horario-toolbar">
     <select id="horarioDia" class="form-control">
@@ -525,11 +502,9 @@
     <input type="text" id="horarioRamo" class="form-control" placeholder="Asignatura">
     <button class="btn-submit" onclick="agregarBloqueHorario()">Añadir Módulo</button>
   </div>
-
   <div class="calendar-board" id="horarioGrid"></div>
 </div>
 
-<!-- TAB 3: EVALUACIONES -->
 <div id="evalTab" class="tab-content">
   <div class="horario-toolbar">
     <input type="text" id="evalNombre" class="form-control" placeholder="Evaluación / Asignatura">
@@ -540,6 +515,20 @@
 </div>
 
 <script>
+// CONFIGURACIÓN DE FIREBASE (TUS CLAVES EXACTAS YA CONECTADAS)
+const firebaseConfig = {
+  apiKey: "AIzaSyB98cuUE3wM-0ZKTIaKBKMzqdRqzEdLjlI",
+  authDomain: "mi-malla-interactiva-874a9.firebaseapp.com",
+  databaseURL: "https://mi-malla-interactiva-874a9-default-rtdb.firebaseio.com",
+  projectId: "mi-malla-interactiva-874a9",
+  storageBucket: "mi-malla-interactiva-874a9.firebasestorage.app",
+  messagingSenderId: "549574399168",
+  appId: "1:549574399168:web:406f493ca3635b60780925"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 function switchTab(tabId, btn) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -547,9 +536,8 @@ function switchTab(tabId, btn) {
   btn.classList.add('active');
 }
 
-// 1. DATA DE LA MALLA
+// DATA DE LA MALLA
 const coursesData = [
-  // SEMESTRE 1
   { id: "c1_1", name: "Ley Acoso Violencia y Discriminación", level: 1, credits: 0, prereqs: [] },
   { id: "c1_2", name: "Introducción a la Vida Universitaria", level: 1, credits: 1, prereqs: [] },
   { id: "c1_3", name: "Desafío de Ingeniería Estructural", level: 1, credits: 5, prereqs: [] },
@@ -558,8 +546,6 @@ const coursesData = [
   { id: "c1_6", name: "Taller de Edificación", level: 1, credits: 5, prereqs: [] },
   { id: "c1_7", name: "Comunicación Escrita", level: 1, credits: 2, prereqs: [] },
   { id: "c1_8", name: "Comunicación Oral", level: 1, credits: 2, prereqs: [] },
-
-  // SEMESTRE 2
   { id: "c2_1", name: "Cálculo Diferencial", level: 2, credits: 7, prereqs: ["c1_4", "c1_5"] },
   { id: "c2_2", name: "Geometría", level: 2, credits: 6, prereqs: ["c1_4"] },
   { id: "c2_3", name: "Taller de Dibujo", level: 2, credits: 5, prereqs: [] },
@@ -569,8 +555,6 @@ const coursesData = [
   { id: "c2_7", name: "Taller de Autogestión", level: 2, credits: 1, prereqs: ["c1_2"] },
   { id: "c2_8", name: "Lectura Crítica", level: 2, credits: 2, prereqs: [] },
   { id: "c2_9", name: "Pensamiento Crítico", level: 2, credits: 2, prereqs: [] },
-
-  // SEMESTRE 3
   { id: "c3_1", name: "Construcción Sustentable", level: 3, credits: 5, prereqs: ["c1_6"] },
   { id: "c3_2", name: "Estática", level: 3, credits: 6, prereqs: ["c1_3", "c2_6"] },
   { id: "c3_3", name: "Física", level: 3, credits: 7, prereqs: ["c2_1"] },
@@ -578,8 +562,6 @@ const coursesData = [
   { id: "c3_5", name: "Cálculo Integral", level: 3, credits: 7, prereqs: ["c2_1"] },
   { id: "c3_6", name: "Taller de Topografía", level: 3, credits: 5, prereqs: ["c2_3"] },
   { id: "c3_7", name: "Inglés Nivel A2+", level: 3, credits: 0, prereqs: [] },
-
-  // SEMESTRE 4
   { id: "c4_1", name: "Análisis Impacto Ambiental", level: 4, credits: 5, prereqs: ["c3_1"] },
   { id: "c4_2", name: "Mecánica de Sólidos", level: 4, credits: 6, prereqs: ["c3_2"] },
   { id: "c4_3", name: "Álgebra Lineal", level: 4, credits: 7, prereqs: ["c1_5"] },
@@ -588,8 +570,6 @@ const coursesData = [
   { id: "c4_6", name: "Créditos Extradisciplinares", level: 4, credits: 5, prereqs: [] },
   { id: "c4_7", name: "Inglés Nivel B1-", level: 4, credits: 0, prereqs: [] },
   { id: "c4_8", name: "Semana I", level: 4, credits: 1, prereqs: ["c1_1","c1_2","c1_3","c1_4","c1_5","c1_6","c1_7","c1_8","c2_1","c2_2","c2_3","c2_4","c2_5","c2_6","c2_7","c2_8","c2_9"] },
-
-  // SEMESTRE 5
   { id: "c5_1", name: "Camino Al Egreso", level: 5, credits: 0, prereqs: ["c3_4"] },
   { id: "c5_2", name: "Análisis Estructural", level: 5, credits: 6, prereqs: ["c4_2"] },
   { id: "c5_3", name: "Taller Materiales Ingeniería", level: 5, credits: 5, prereqs: ["c4_5", "c4_7"] },
@@ -598,8 +578,6 @@ const coursesData = [
   { id: "c5_6", name: "Dirección de Proyectos", level: 5, credits: 5, prereqs: ["c4_5", "c4_7"] },
   { id: "c5_7", name: "Créditos Extradisciplinares", level: 5, credits: 5, prereqs: [] },
   { id: "c5_8", name: "Inglés Nivel B1+", level: 5, credits: 0, prereqs: [] },
-
-  // SEMESTRE 6
   { id: "c6_1", name: "Planificación y Control Proyectos", level: 6, credits: 5, prereqs: ["c5_6"] },
   { id: "c6_2", name: "Herramientas Computacionales Estructural", level: 6, credits: 6, prereqs: ["c5_2"] },
   { id: "c6_3", name: "Diseño Estructural", level: 6, credits: 6, prereqs: ["c4_2"] },
@@ -608,8 +586,6 @@ const coursesData = [
   { id: "c6_6", name: "Herramientas Costeo Proyectos", level: 6, credits: 5, prereqs: ["c4_5"] },
   { id: "c6_7", name: "Práctica Profesional I", level: 6, credits: 0, prereqs: ["c1_1","c1_2","c1_3","c1_4","c1_5","c1_6","c1_7","c1_8","c2_1","c2_2","c2_3","c2_4","c2_5","c2_6","c2_7","c2_8","c2_9","c3_1","c3_2","c3_3","c3_4","c3_5","c3_6","c3_7","c4_1","c4_2","c4_3","c4_4","c4_5","c4_6","c4_7","c4_8","c5_1","c5_2","c5_3","c5_4","c5_5","c5_6","c5_7","c5_8"] },
   { id: "c6_8", name: "Inglés Nivel B2-", level: 6, credits: 0, prereqs: [] },
-
-  // SEMESTRE 7
   { id: "c7_1", name: "Análisis y Estimación Costos", level: 7, credits: 5, prereqs: ["c6_6"] },
   { id: "c7_2", name: "Dirección Obras Construcción", level: 7, credits: 5, prereqs: ["c6_1"] },
   { id: "c7_3", name: "Structural Dynamics", level: 7, credits: 6, prereqs: ["c5_2", "c6_8"] },
@@ -617,8 +593,6 @@ const coursesData = [
   { id: "c7_5", name: "Mecánica de Fluidos", level: 7, credits: 5, prereqs: ["c3_3"] },
   { id: "c7_6", name: "Taller Tecnologías Información", level: 7, credits: 5, prereqs: ["c6_1"] },
   { id: "c7_7", name: "Taller de Liderazgo", level: 7, credits: 1, prereqs: ["c5_1"] },
-
-  // SEMESTRE 8
   { id: "c8_1", name: "Gestión Financiera Proyectos", level: 8, credits: 5, prereqs: ["c7_1"] },
   { id: "c8_2", name: "Taller BIM Toma Decisiones", level: 8, credits: 5, prereqs: ["c7_6"] },
   { id: "c8_3", name: "Hormigón Armado", level: 8, credits: 6, prereqs: ["c6_3"] },
@@ -627,16 +601,12 @@ const coursesData = [
   { id: "c8_6", name: "Mecánica de Suelos", level: 8, credits: 6, prereqs: ["c7_4"] },
   { id: "c8_7", name: "Práctica Profesional II", level: 8, credits: 0, prereqs: ["c1_1","c1_2","c1_3","c1_4","c1_5","c1_6","c1_7","c1_8","c2_1","c2_2","c2_3","c2_4","c2_5","c2_6","c2_7","c2_8","c2_9","c3_1","c3_2","c3_3","c3_4","c3_5","c3_6","c3_7","c4_1","c4_2","c4_3","c4_4","c4_5","c4_6","c4_7","c4_8","c5_1","c5_2","c5_3","c5_4","c5_5","c5_6","c5_7","c5_8","c6_1","c6_2","c6_3","c6_4","c6_5","c6_6","c6_7","c6_8","c7_1","c7_2","c7_3","c7_4","c7_5","c7_6","c7_7"] },
   { id: "c8_8", name: "Seminario de Investigación", level: 8, credits: 5, prereqs: ["c6_3", "c5_3", "c5_6"] },
-
-  // SEMESTRE 9
   { id: "c9_1", name: "Taller Resolución Problemas", level: 9, credits: 5, prereqs: ["c7_1"] },
   { id: "c9_2", name: "Construcción Obras Civiles", level: 9, credits: 6, prereqs: ["c6_5", "c6_7"] },
   { id: "c9_3", name: "Taller Estructuras Hormigón", level: 9, credits: 7, prereqs: ["c8_3"] },
   { id: "c9_4", name: "Electivo Profundización I", level: 9, credits: 6, prereqs: [] },
   { id: "c9_5", name: "Electivo Profundización II", level: 9, credits: 6, prereqs: [] },
   { id: "c9_6", name: "Taller de Empleabilidad", level: 9, credits: 1, prereqs: ["c7_7"] },
-
-  // SEMESTRE 10
   { id: "c10_1", name: "Taller Estudio Propuestas", level: 10, credits: 7, prereqs: ["c8_1"] },
   { id: "c10_2", name: "Electivo Profundización III", level: 10, credits: 6, prereqs: [] },
   { id: "c10_3", name: "Electivo Profundización IV", level: 10, credits: 6, prereqs: [] },
@@ -648,9 +618,14 @@ const coursesData = [
 const TOTAL_CREDITS_CAREER = coursesData.reduce((sum, c) => sum + c.credits, 0);
 const statusOrder = ["pending", "in_progress", "passed", "failed"];
 const statusLabels = { pending: "Pendiente", in_progress: "Cursando", passed: "Aprobado", failed: "Reprobado" };
-let courseStatus = JSON.parse(localStorage.getItem('malla_course_status') || '{}');
+let courseStatus = {};
 
-function saveMallaState() { localStorage.setItem('malla_course_status', JSON.stringify(courseStatus)); }
+db.ref('malla_course_status').on('value', snapshot => {
+  courseStatus = snapshot.val() || {};
+  renderMalla();
+});
+
+function saveMallaState() { db.ref('malla_course_status').set(courseStatus); }
 function getCourseById(id) { return coursesData.find(c => c.id === id); }
 
 function renderMalla() {
@@ -707,9 +682,6 @@ function renderMalla() {
         const nextIndex = (statusOrder.indexOf(currentStatus) + 1) % statusOrder.length;
         courseStatus[course.id] = statusOrder[nextIndex];
         saveMallaState();
-        renderMalla();
-        updateStats();
-        highlightPrereqs(course.id);
       });
 
       card.addEventListener('mouseenter', () => highlightPrereqs(course.id));
@@ -774,32 +746,16 @@ function updateStats() {
   document.getElementById('progressBar').style.width = `${percent}%`;
 }
 
-// 2. DATA DEL HORARIO
+// DATA DEL HORARIO FIREBASE
 const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-let horarioData = JSON.parse(localStorage.getItem('app_horario_data') || '[]');
+let horarioData = [];
 
-if (horarioData.length === 0) {
-  horarioData = [
-    { id: 1, dia: "Lunes", hora: "8:30 - 9:40", ramo: "Taller de Autogestión" },
-    { id: 2, dia: "Lunes", hora: "9:50 - 11:00", ramo: "Lectura Crítica" },
-    { id: 3, dia: "Lunes", hora: "11:10 - 13:40", ramo: "Taller de Dibujo" },
-    { id: 4, dia: "Martes", hora: "8:30 - 11:00", ramo: "Álgebra" },
-    { id: 5, dia: "Martes", hora: "11:10 - 13:40", ramo: "Introducción Al Cálculo" },
-    { id: 6, dia: "Martes", hora: "15:10 - 16:20", ramo: "Álgebra" },
-    { id: 7, dia: "Miércoles", hora: "11:10 - 13:40", ramo: "Introducción Al Cálculo" },
-    { id: 8, dia: "Miércoles", hora: "17:50 - 20:20", ramo: "Taller de Análisis de Datos" },
-    { id: 9, dia: "Jueves", hora: "8:30 - 11:00", ramo: "Álgebra" },
-    { id: 10, dia: "Jueves", hora: "11:10 - 13:40", ramo: "Álgebra" },
-    { id: 11, dia: "Viernes", hora: "11:10 - 13:40", ramo: "Introducción Al Cálculo" },
-    { id: 12, dia: "Viernes", hora: "17:50 - 19:00", ramo: "Taller de Análisis de Datos" }
-  ];
-  localStorage.setItem('app_horario_data', JSON.stringify(horarioData));
-}
-
-function saveHorarioState() {
-  localStorage.setItem('app_horario_data', JSON.stringify(horarioData));
+db.ref('app_horario_data').on('value', snapshot => {
+  horarioData = snapshot.val() || [];
   renderHorario();
-}
+});
+
+function saveHorarioState() { db.ref('app_horario_data').set(horarioData); }
 
 function agregarBloqueHorario() {
   const dia = document.getElementById('horarioDia').value;
@@ -850,13 +806,15 @@ function renderHorario() {
   });
 }
 
-// 3. DATA EVALUACIONES
-let evaluaciones = JSON.parse(localStorage.getItem('app_evaluaciones') || '[]');
+// DATA EVALUACIONES FIREBASE
+let evaluaciones = [];
 
-function saveEvalState() {
-  localStorage.setItem('app_evaluaciones', JSON.stringify(evaluaciones));
+db.ref('app_evaluaciones').on('value', snapshot => {
+  evaluaciones = snapshot.val() || [];
   renderEvaluaciones();
-}
+});
+
+function saveEvalState() { db.ref('app_evaluaciones').set(evaluaciones); }
 
 function agregarEvaluacion() {
   const nombre = document.getElementById('evalNombre').value;
@@ -893,10 +851,6 @@ function renderEvaluaciones() {
     container.appendChild(card);
   });
 }
-
-renderMalla();
-renderHorario();
-renderEvaluaciones();
 </script>
 
 </body>
